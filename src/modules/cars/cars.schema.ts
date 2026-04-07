@@ -25,4 +25,16 @@ export const createCarSchema = z.object({
   imageUrl: z.string(),
 });
 
-export type createCarChema = z.infer<typeof createCarSchema>;
+export const searchCarSchema = z.object({
+  search: z.string().min(1),
+});
+
+export const searchFiltersSchema = z.object({
+  brand: z.string().trim().optional(),
+  model: z.string().trim().optional(),
+  version: z.string().trim().optional(),
+});
+
+export type createCarDTO = z.infer<typeof createCarSchema>;
+export type SearchCarRequest = z.infer<typeof searchCarSchema>;
+export type SearchCarFilters = z.infer<typeof searchFiltersSchema>;

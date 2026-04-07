@@ -1,4 +1,4 @@
-import type { ICarRepository } from "../repository/types.js";
+import type { ICarRepository } from "../repository/schema.js";
 
 export class getAllCarsUseCase {
   constructor(private repository: ICarRepository) {}
