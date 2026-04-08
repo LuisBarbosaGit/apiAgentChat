@@ -21,7 +21,7 @@ export class AiSearchAgent {
     ];
     const completion = await this.agent.chat.completions.create({
       model: env.MODEL_NAME as string,
-      temperature: 1,
+      temperature: 0,
       messages,
       tools: [SEARCH_CARS_TOOL],
       tool_choice: "required",
@@ -41,7 +41,7 @@ export class AiSearchAgent {
 
     const finalResponse = await this.agent.chat.completions.create({
       model: env.MODEL_NAME as string,
-      temperature: 1,
+      temperature: 0.7,
       messages: [
         ...messages,
         aiMessage as OpenAI.Chat.ChatCompletionMessageParam,
@@ -62,12 +62,15 @@ export class AiSearchAgent {
             - Não finalize com uma pergunta
             - Nunca invente informações que não estejam no contexto fornecido
             - Se não houver resultados, diga de forma simpática e sugira ajustar os filtros
+            - Se a pergunta não tiver relação com o contexto, retorne uma string vazia.
       `,
         },
       ],
     });
 
-    const responseMessage = finalResponse.choices[0]?.message.content ?? "";
+    const responseMessage =
+      finalResponse.choices[0]?.message.content ??
+      "Não foi possível processar dados com essa pergunta";
     return { items, message: responseMessage };
   }
 }

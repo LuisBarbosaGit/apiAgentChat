@@ -8,7 +8,9 @@ import {
 } from "fastify-type-provider-zod";
 
 export const buildApp = async () => {
-  const app = fastify();
+  const app = fastify({
+    logger: true
+  });
 
   await app.register(cors, { origin: true });
 
