@@ -11,22 +11,24 @@ export class AiSearchAgent {
   ) {}
 
   async execute(message: string) {
+    const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+      {
+        role: "system",
+        content:
+          "Assistente de catálogo de veículos (português). Chame search_cars exatamente uma vez. Preencha `marca` se o fabricante for mencionado; `modelo` para o modelo; `versao` para motor/versão; `ano` para ano exato; `quilometragem` para quilometragem exata em km. Combine os campos quando fizer sentido. Use argumentos vazios {} apenas se a mensagem for genérica (listar tudo) sem nenhum desses critérios.",
+      },
+      { role: "user", content: message },
+    ];
     const completion = await this.agent.chat.completions.create({
       model: env.MODEL_NAME as string,
       temperature: 1,
-      messages: [
-        {
-          role: "system",
-          content:
-            '"Assistente de catálogo de veículos (português). Chame search_cars exatamente uma vez. Preencha `marca` se citar fabricante; `nome` para modelo; `versao` para motor/trim; `ano` para um ano-modelo exato (não misture com ano_min/ano_max); `ano_min` e/ou `ano_max` para intervalos de ano; `km_min` e/ou `km_max` para quilometragem em km inteiros (ex.: 50 mil → 50000). Combine campos quando fizer sentido. Só use argumentos vazios {} se a mensagem for genérica (listar tudo) sem nenhum desses critérios."',
-        },
-        { role: "user", content: message },
-      ],
+      messages,
       tools: [SEARCH_CARS_TOOL],
       tool_choice: "required",
     });
 
     const toolCalls = completion.choices[0]?.message.tool_calls ?? [];
+    const aiMessage = completion.choices[0]?.message;
 
     const call = toolCalls.find(
       (c): c is Extract<(typeof toolCalls)[number], { type: "function" }> =>
@@ -37,6 +39,35 @@ export class AiSearchAgent {
 
     const items = await this.repository.filterCars(filters);
 
-    return { items };
+    const finalResponse = await this.agent.chat.completions.create({
+      model: env.MODEL_NAME as string,
+      temperature: 1,
+      messages: [
+        ...messages,
+        aiMessage as OpenAI.Chat.ChatCompletionMessageParam,
+        {
+          role: "tool",
+          tool_call_id: call?.id ?? "",
+          content: JSON.stringify(items),
+        },
+        {
+          role: "system",
+          content: `
+            Você é um consultor de vendas de veículos simpático e direto.
+             Regras de resposta:
+            - Seja conversacional, mas mantendo a formalidade
+            - Não use listas com bullet points nem markdown (sem traços, asteriscos, negrito)
+            - Se houver apenas um resultado, apresente-o de forma fluida em 2 ou 3 frases curtas
+            - Se houver múltiplos resultados, cite os destaques de cada um em linguagem natural
+            - Não finalize com uma pergunta
+            - Nunca invente informações que não estejam no contexto fornecido
+            - Se não houver resultados, diga de forma simpática e sugira ajustar os filtros
+      `,
+        },
+      ],
+    });
+
+    const responseMessage = finalResponse.choices[0]?.message.content ?? "";
+    return { items, message: responseMessage };
   }
 }

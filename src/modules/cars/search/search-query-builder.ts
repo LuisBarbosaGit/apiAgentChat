@@ -1,4 +1,4 @@
-import { and, ilike, type SQL } from "drizzle-orm";
+import { and, ilike, eq, gte, lte, type SQL } from "drizzle-orm";
 import type { SearchCarFilters } from "../cars.schema.js";
 import { cars } from "../../../infra/database/schemas/cars.js";
 
@@ -17,9 +17,17 @@ export const searchQueryBuilder = (filters: SearchCarFilters) => {
     parts.push(ilike(cars.version, `%${filters.version}%`));
   }
 
-  if(!parts.length){
-    return {}
+  if (filters.year) {
+    parts.push(eq(cars.year, filters.year));
   }
 
-  return {where: parts.length === 1 ? parts[0]! : and(...parts)}
+  if (filters.mileage) {
+    parts.push(eq(cars.mileage, filters.mileage));
+  }
+
+  if (!parts.length) {
+    return {};
+  }
+
+  return { where: parts.length === 1 ? parts[0]! : and(...parts) };
 };

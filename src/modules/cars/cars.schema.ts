@@ -33,6 +33,8 @@ export const searchFiltersSchema = z.object({
   brand: z.string().trim().optional(),
   model: z.string().trim().optional(),
   version: z.string().trim().optional(),
+  year: z.number().optional(),
+  mileage: z.number().optional(),
 });
 
 export type createCarDTO = z.infer<typeof createCarSchema>;

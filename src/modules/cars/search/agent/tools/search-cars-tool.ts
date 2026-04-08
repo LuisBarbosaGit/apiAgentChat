@@ -1,6 +1,5 @@
 import type OpenAI from "openai";
 
-
 export const TOOL_NAME = "search_cars";
 
 export const SEARCH_CARS_TOOL = {
@@ -8,7 +7,7 @@ export const SEARCH_CARS_TOOL = {
   function: {
     name: TOOL_NAME,
     description:
-      'Consulta o catálogo por critérios. Preencha tudo o que a pergunta deixar claro. `marca` = fabricante (BMW, Fiat). `nome` = modelo (Gol, T-Cross). `versao` = motor/trim (1.4, Comfortline). `ano` = ano-modelo exato (use só um: `ano` OU `ano_min`/`ano_max`, não misture). `ano_min`/`ano_max` = faixa ("de 2018 a 2020", "a partir de 2019"). `km_min`/`km_max` = quilometragem em km inteiros ("50 mil km" → km_max: 50000; "acima de 100 mil" → km_min: 100000). Ex.: {"marca":"BMW"}; {"nome":"Gol","versao":"1.4"}; {"ano":2020}; {"ano_min":2018,"ano_max":2020}; {"km_max":50000}. Use {} só para pedidos genéricos sem marca, modelo, versão, ano nem km (ex.: "mostre tudo").',
+      'Pesquise o catálogo por critérios. Preencha tudo que a pergunta deixar claro. `marca` = fabricante (BMW, Fiat). `modelo` = modelo (Gol, T-Cross). `versao` = versão ou motor quando mencionado (1.4, Comfortline). `ano` = ano exato (ex.: 2020). `quilometragem` = quilometragem exata em km (ex.: 50000). Ex.: {"marca":"BMW"}; {"modelo":"Gol","versao":"1.4"}; {"ano":2020}; {"quilometragem":50000}. Use {} apenas para requisições genéricas sem marca, modelo, versão, ano ou quilometragem (ex.: "mostre tudo").',
     parameters: {
       type: "object",
       additionalProperties: false,
@@ -26,6 +25,14 @@ export const SEARCH_CARS_TOOL = {
           type: "string",
           description:
             "Versão ou motor quando citado (ex.: 1.4, 1.0 TSI, Comfortline)",
+        },
+        year: {
+          type: "number",
+          description: "Exact year (e.g.: 2020)",
+        },
+        mileage: {
+          type: "number",
+          description: "Exact mileage in km (e.g.: 50000)",
         },
       },
     },
